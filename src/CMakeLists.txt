@@ -4,4 +4,8 @@ project(voxels)
 
 include_directories(voxels ${CMAKE_SOURCE_DIR}/include)
 
-add_executable(voxels main.cpp)
+file(GLOB src "*.cpp")
+
+message(${src})
+
+add_library(voxels SHARED ${src})
