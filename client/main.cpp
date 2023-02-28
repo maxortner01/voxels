@@ -1,9 +1,18 @@
-#include "livre/text.h"
+#include "livre/livre.h"
 
 #include <iostream>
 
+using namespace livre;
+
 int main()
 {
-    std::cout << livre::Testing::test(2) << "\n";
+    Window window(100, 100);
+
+    while (window.open())
+    {
+        window.pollEvents();
+        window.update();
+    }
+
     return 0;
 }

@@ -7,4 +7,4 @@ link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 add_executable(client main.cpp)
 
-target_link_libraries(client voxels)
+target_link_libraries(client libvoxels.dll.a)
