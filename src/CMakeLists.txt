@@ -7,12 +7,11 @@ IF (WIN32)
 ENDIF()
 
 include_directories(voxels ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/extern/glew/include ${CMAKE_SOURCE_DIR}/extern/glfw/include)
-link_directories(${CMAKE_SOURCE_DIR}/build/extern/glew/lib)
 
-message(${CMAKE_SOURCE_DIR}/build/extern/glew/lib)
+add_definitions(-DGLEW_STATIC)
 
 file(GLOB src "*.cpp")
 
-add_library(voxels SHARED ${src})
+add_library(voxels SHARED ${src} "${CMAKE_SOURCE_DIR}/extern/glew/src/glew.c")
 
-target_link_libraries(voxels libglew.a glfw)
+target_link_libraries(voxels opengl32 glfw)

@@ -6,7 +6,12 @@ using namespace livre;
 
 int main()
 {
-    Window window(100, 100);
+    Window window(1280, 720);
+    
+    Shader shader(Shader::TYPE::VERTEX | Shader::TYPE::FRAGMENT);
+    std::cout << shader.fromFile(Shader::TYPE::VERTEX, "test.txt") << "\n";
+
+    window.setTitle("Main");
 
     while (window.open())
     {

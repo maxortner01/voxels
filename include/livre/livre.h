@@ -1,3 +1,4 @@
 #pragma once
 
-#include "Window.h"
+#include "Graphics/Window.h"
+#include "Graphics/Shader.h"
