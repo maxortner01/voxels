@@ -3,3 +3,5 @@
 
 #include "./Graphics/Window.cpp"
 #include "./Graphics/Shader.cpp"
+#include "./Graphics/BufferObject.cpp"
+#include "./Graphics/VertexObject.cpp"

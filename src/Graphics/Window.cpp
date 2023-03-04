@@ -28,6 +28,11 @@ namespace livre
             std::cout << "Glew Failed to init\n code: " << code <<"\n";
         }
     }
+
+    void Window::clear() const
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
     
     void Window::setTitle(const std::string& title)
     {

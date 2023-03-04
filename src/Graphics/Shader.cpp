@@ -50,6 +50,7 @@ namespace livre
             std::free(files);
             files = nullptr;
         }
+        glDeleteProgram(_id);
     }
 
     void Shader::use() const
