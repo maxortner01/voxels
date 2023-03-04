@@ -6,9 +6,9 @@ IF (WIN32)
     add_compile_definitions(VOXEL_BUILD)
 ENDIF()
 
-include_directories(voxels ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/extern/glew/include ${CMAKE_SOURCE_DIR}/extern/glfw/include)
+include_directories(voxels ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/extern/glew/include ${CMAKE_SOURCE_DIR}/extern/spdlog/include ${CMAKE_SOURCE_DIR}/extern/glfw/include)
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC -DLIVRE_LOGGING)
 
 file(GLOB src "*.cpp")
 

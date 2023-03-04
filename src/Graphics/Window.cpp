@@ -10,15 +10,28 @@ namespace livre
     {
         // Init GLFW and create window
         glfwInit();
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         window = (void*)glfwCreateWindow(width, height, "", NULL, NULL);
+        
+#       ifdef LIVRE_LOGGING
+        spdlog::stdout_color_st("db_logger");
+#       endif
 
         // Make sure window is all good and make context current
         if (window == NULL)
         {
-            std::cout << "Failed to create GLFW window" << std::endl;
+#           ifdef LIVRE_LOGGING
+            spdlog::get("db_logger")->error("Window creation failed!");
+#           endif
             glfwTerminate();
             return;
         }
+#       ifdef LIVRE_LOGGING
+        else
+        {
+            spdlog::get("db_logger")->info("Window created successfully!");
+        }
+#       endif
         glfwMakeContextCurrent((win)window);
 
         // Set up GLEW and get it ready (must be done after context is made current)

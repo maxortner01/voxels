@@ -50,23 +50,46 @@ namespace livre
     VertexObject::STATUS VertexObject::loadVertices(const Vec3f* vertices, const size_t& count) const
     {
         BufferObject* vertex_buffer = getBuffer(BufferObject::BUFFERTYPE::VERTEX);
-        if (!vertex_buffer) return DOESNT_HAVE_BUFFER;
+        if (!vertex_buffer) 
+#       ifdef LIVRE_LOGGING
+        { spdlog::get("db_logger")->error("Vertex buffer not present!"); return DOESNT_HAVE_BUFFER; }
+#       else
+        return DOESNT_HAVE_BUFFER;
+#       endif
         
         bind();
         vertex_buffer->loadData((void*)vertices, sizeof(float), 3, count);
         unbind();
 
+#       ifdef LIVRE_LOGGING
+        spdlog::get("db_logger")->info("{} vertices loaded successfully!", count);
+#       endif
         return SUCCESS;
     }
     
     VertexObject::STATUS VertexObject::loadIndices(const uint32_t* indices, const size_t& count)
     {
         _indices = new uint32_t[count];
+#       ifdef LIVRE_LOGGING
+        if (!_indices)
+        { spdlog::get("db_logger")->error("Index allocation failed!"); return ALLOCATION_FAILURE; }
+#       else
         if (!_indices) return ALLOCATION_FAILURE;
+#       endif
 
-        if (!std::memcpy(_indices, indices, count * sizeof(uint32_t))) return COPY_FAILURE;
+
+        if (!std::memcpy(_indices, indices, count * sizeof(uint32_t))) 
+#       ifdef LIVRE_LOGGING
+            { spdlog::get("db_logger")->error("Failed copying indices!"); return COPY_FAILURE; }
+#       else
+            return COPY_FAILURE;
+#       endif 
 
         _index_count = count;
+#       ifdef LIVRE_LOGGING
+        spdlog::get("db_logger")->info("{} indices loaded successfully.", count); 
+#       endif
+
         return SUCCESS;
     }
 
