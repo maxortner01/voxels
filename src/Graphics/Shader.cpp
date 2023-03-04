@@ -83,6 +83,7 @@ namespace livre
         auto logger = spdlog::get("db_logger");
 #   endif
         Shader::File shaderFile = getFile(type);
+        TRACE_LOG("Loading shader ({0}) from file '{1}'.", (int)shaderFile.id, filename);
 
 #   ifndef LIVRE_LOGGING
         if (shaderFile.type == TYPE::NONE) 

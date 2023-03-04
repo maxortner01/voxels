@@ -3,9 +3,15 @@
 namespace livre
 {
     VertexObject::VertexObject(const wchar_t& buffertypes) :
-        _count(0), buffers(nullptr)
+        _count(0), buffers(nullptr), id(0)
     {
-        glCreateVertexArrays(1, &id);
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("db_logger");
+#   endif
+
+        TRACE_LOG("Creating Vertex Arrays...");
+        glGenVertexArrays(1, &id);
+        TRACE_LOG("... done");
 
         const std::bitset<8> bits(buffertypes);
 
@@ -13,8 +19,10 @@ namespace livre
             if (bits[i]) 
                 _count++;
 
+        TRACE_LOG("Allocating Buffer Objects.");
         buffers = new BufferObject[_count];
         if (!buffers) { std::cout << "Insufficient memory malloc, vertexobject.\\n"; return; }
+        TRACE_LOG("... done");
 
         bind();
         std::memset(buffers, 0, sizeof(BufferObject) * _count);
