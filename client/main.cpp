@@ -8,6 +8,7 @@ int main()
 {
     Window window(1280, 720);
     
+    /*
     Shader shader(Shader::TYPE::VERTEX | Shader::TYPE::FRAGMENT);
     
     shader.fromFile(Shader::TYPE::VERTEX, "vertex.glsl");
@@ -35,16 +36,12 @@ int main()
         std::cout << "error loading vertices\n";
     }
 
-
+*/
     window.setTitle("Main");
 
     while (window.open())
     {
         window.pollEvents();
-        window.update();
-
-        window.clear();
-        object.render(shader);
     }
 
     return 0;

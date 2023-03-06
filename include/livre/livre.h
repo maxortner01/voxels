@@ -6,3 +6,4 @@
 #include "Graphics/Shader.h"
 #include "Graphics/BufferObject.h"
 #include "Graphics/VertexObject.h"
+#include "Graphics/RenderInstance.h"

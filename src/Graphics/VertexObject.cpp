@@ -6,7 +6,7 @@ namespace livre
         _count(0), buffers(nullptr), id(0)
     {
 #   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("db_logger");
+        auto logger = spdlog::get("livre");
 #   endif
 
         TRACE_LOG("Creating Vertex Arrays...");
@@ -60,7 +60,7 @@ namespace livre
         BufferObject* vertex_buffer = getBuffer(BufferObject::BUFFERTYPE::VERTEX);
         if (!vertex_buffer) 
 #       ifdef LIVRE_LOGGING
-        { spdlog::get("db_logger")->error("Vertex buffer not present!"); return DOESNT_HAVE_BUFFER; }
+        { spdlog::get("livre")->error("Vertex buffer not present!"); return DOESNT_HAVE_BUFFER; }
 #       else
         return DOESNT_HAVE_BUFFER;
 #       endif
@@ -70,7 +70,7 @@ namespace livre
         unbind();
 
 #       ifdef LIVRE_LOGGING
-        spdlog::get("db_logger")->info("{} vertices loaded successfully!", count);
+        spdlog::get("livre")->info("{} vertices loaded successfully!", count);
 #       endif
         return SUCCESS;
     }
@@ -80,7 +80,7 @@ namespace livre
         _indices = new uint32_t[count];
 #       ifdef LIVRE_LOGGING
         if (!_indices)
-        { spdlog::get("db_logger")->error("Index allocation failed!"); return ALLOCATION_FAILURE; }
+        { spdlog::get("livre")->error("Index allocation failed!"); return ALLOCATION_FAILURE; }
 #       else
         if (!_indices) return ALLOCATION_FAILURE;
 #       endif
@@ -88,14 +88,14 @@ namespace livre
 
         if (!std::memcpy(_indices, indices, count * sizeof(uint32_t))) 
 #       ifdef LIVRE_LOGGING
-            { spdlog::get("db_logger")->error("Failed copying indices!"); return COPY_FAILURE; }
+            { spdlog::get("livre")->error("Failed copying indices!"); return COPY_FAILURE; }
 #       else
             return COPY_FAILURE;
 #       endif 
 
         _index_count = count;
 #       ifdef LIVRE_LOGGING
-        spdlog::get("db_logger")->info("{} indices loaded successfully.", count); 
+        spdlog::get("livre")->info("{} indices loaded successfully.", count); 
 #       endif
 
         return SUCCESS;

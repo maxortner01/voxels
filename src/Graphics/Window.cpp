@@ -6,17 +6,21 @@
 
 namespace livre
 {
-    Window::Window(uint16_t width, uint16_t height)
+    Window::Window(uint16_t width, uint16_t height) :
+        instance(nullptr)
     {
         // Init GLFW and create window
         glfwInit();
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         window = (void*)glfwCreateWindow(width, height, "", NULL, NULL);
         
+        // Initialize spdlog
 #       ifdef LIVRE_LOGGING
-        spdlog::stdout_color_st("db_logger");
+        spdlog::stdout_color_st("livre");
+        spdlog::stdout_color_st("vulkan");
         spdlog::set_level(spdlog::level::trace);
-        auto logger = spdlog::get("db_logger");
+        auto logger = spdlog::get("livre");
 #       endif
 
         // Make sure window is all good and make context current
@@ -33,27 +37,35 @@ namespace livre
             logger->info("Window created successfully!");
 #       endif
 
-        TRACE_LOG("Making window context current.");
-        glfwMakeContextCurrent((win)window);
-        TRACE_LOG("...done");
+        // Initialize the render instance
+        instance = new Graphics::RenderInstance(window);
+    }
 
-        // Set up GLEW and get it ready (must be done after context is made current)
-#   ifdef __APPLE__
-        glewExperimental = GL_TRUE; 
-#   endif
-
-        uint32_t code = glewInit();
+    Window::~Window()
+    {
 #   ifdef LIVRE_LOGGING
-        if (code != GLEW_OK)
-            logger->error("Glew failed to initialize (code {})", code);
-        else
-            logger->info("Glew initialized successfully!");
+        auto logger = spdlog::get("livre");
 #   endif
+
+        if (instance)
+        {
+            delete instance;
+            instance = nullptr;
+        }
+
+        if (window)
+        {
+            TRACE_LOG("Destroying window...");
+            glfwDestroyWindow((win)window);
+            glfwTerminate();
+            TRACE_LOG("...done");
+            window = nullptr;
+        }
     }
 
     void Window::clear() const
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        
     }
     
     void Window::setTitle(const std::string& title)

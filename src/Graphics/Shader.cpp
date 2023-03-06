@@ -11,7 +11,7 @@ namespace livre
         _count(0), _id(0)
     {
 #   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("db_logger");
+        auto logger = spdlog::get("livre");
 #   endif
         _id = glCreateProgram();
         if (!_id) return;
@@ -80,7 +80,7 @@ namespace livre
     Shader::STATUS Shader::fromFile(const TYPE& type, const std::string& filename) const 
     {
 #   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("db_logger");
+        auto logger = spdlog::get("livre");
 #   endif
         Shader::File shaderFile = getFile(type);
         TRACE_LOG("Loading shader ({0}) from file '{1}'.", (int)shaderFile.id, filename);
@@ -114,7 +114,7 @@ namespace livre
     Shader::STATUS Shader::fromString(const TYPE& type, const std::string& contents) const 
     {
 #   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("db_logger");
+        auto logger = spdlog::get("livre");
 #   endif
 
 #   ifndef LIVRE_LOGGING
@@ -180,7 +180,7 @@ namespace livre
     Shader::STATUS Shader::link() const
     {
 #   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("db_logger");
+        auto logger = spdlog::get("livre");
 #   endif
 
         use();
