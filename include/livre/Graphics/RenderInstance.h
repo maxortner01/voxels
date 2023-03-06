@@ -10,6 +10,8 @@ namespace Graphics
         struct SwapChainImages
         {
             void* images;
+            void* imageViews;
+
             uint32_t imageCount;
             void* format;
             void* extent;
@@ -34,6 +36,7 @@ namespace Graphics
         void _initLogicalDevice();
         void _initSurface(void* window);
         void _createSwapChain(void* window);
+        void _createImageViews();
 
     public:
         RenderInstance(void* window, const std::string& title = "vulkan");

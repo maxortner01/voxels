@@ -489,6 +489,47 @@ namespace Graphics
         INFO_LOG("Swap chain created successfully.");
     }
 
+    void RenderInstance::_createImageViews() 
+    {
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("vulkan");
+#   endif
+
+        _swapChainImages->imageViews = std::malloc(sizeof(VkImageView) * _swapChainImages->imageCount);
+
+        for (uint32_t i = 0; i < _swapChainImages->imageCount; i++)
+        {
+            VkImageView* imageView = ((VkImageView*)_swapChainImages->imageViews) + i;
+
+            VkImage    image  = *(((VkImage*)_swapChainImages->images) + i);
+            VkFormat   format = *((VkFormat*)_swapChainImages->format);
+            VkExtent2D extent = *((VkExtent2D*)_swapChainImages->extent);
+
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = image;
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = format;
+
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            VkResult result = vkCreateImageView((VkDevice)logicalDevice, &createInfo, nullptr, imageView);
+
+            if (result != VK_SUCCESS) { ERROR_LOG("Failed to create image view ({})", i); }
+        }
+
+        INFO_LOG("Image views created successfully.");
+    }
+
     RenderInstance::RenderInstance(void* window, const std::string& title)
     {
 #   ifdef LIVRE_LOGGING
@@ -611,6 +652,9 @@ namespace Graphics
 
         TRACE_LOG("Setting up swap chain.");
         _createSwapChain(window);
+
+        TRACE_LOG("Setting up image views.");
+        _createImageViews();
     }
 
     RenderInstance::~RenderInstance()
@@ -622,6 +666,14 @@ namespace Graphics
         DestroyDebugUtilsMessengerEXT((VkInstance)instance, (VkDebugUtilsMessengerEXT)debugMessenger, nullptr);
         TRACE_LOG("... done");
 #   endif
+
+        TRACE_LOG("Destroying image views...");
+        for (uint32_t i = 0; i < _swapChainImages->imageCount; i++)
+        {
+            VkImageView& imageView = *(((VkImageView*)_swapChainImages->imageViews) + i);
+            vkDestroyImageView((VkDevice)logicalDevice, imageView, nullptr);
+        }
+        TRACE_LOG("...done");
         
         TRACE_LOG("Destroying swap chain...");
         vkDestroySwapchainKHR((VkDevice)logicalDevice, (VkSwapchainKHR)swapChain, nullptr);
@@ -631,6 +683,8 @@ namespace Graphics
         if (_swapChainImages)
         {
             std::free(_swapChainImages->images);
+            std::free(_swapChainImages->imageViews);
+
             std::free(_swapChainImages->format);
             std::free(_swapChainImages->extent);
 
