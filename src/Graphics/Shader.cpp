@@ -5,96 +5,50 @@
 #include <bitset>
 #include <cmath>
 
+#ifndef NO_SHADERC
+#   include <shaderc/shaderc.hpp>
+#endif
+
 namespace livre
 {
-    Shader::Shader(const wchar_t& type) :
-        _count(0), _id(0)
-    {
-#   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("livre");
-#   endif
-        _id = glCreateProgram();
-        if (!_id) return;
-
-        const uint32_t GL_SHADERS[] = {
-            GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER
-        };
-
-        const std::bitset<8> bits(type);
-
-        for (int i = 0; i < 3; i++)
-            if (bits[i]) 
-            {
-                if (pow(2, i) == (int)TYPE::COMPUTE && _count > 0)
-                {
-#               ifdef LIVRE_LOGGING
-                    logger->error("There can be no other shaders present with a compute shader!");
-#               endif
-                    return;
-                }
-                _count++;
-            }
-
-        files = (File*)std::malloc(sizeof(File) * _count);
-#   ifndef LIVRE_LOGGING
-        if (!files) return;
-#   else
-        if (!files) 
-        { logger->error("Malloc failed: Insufficient memory!"); return; }
-#   endif
-
-        std::memset(files, 0, sizeof(File) * _count);
-        int j = 0;
-        for (int i = 0; i < 3; i++)
-            if (bits[i])
-            {
-                files[j].type = (TYPE)pow(2, i);
-                files[j++].id = glCreateShader(GL_SHADERS[i]);
-            }
-    }
+    Shader::Shader(const Graphics::RenderInstance& instance, const TYPE& type) :
+        _type(type), _instance(instance), _module(nullptr)
+    {   }
 
     Shader::~Shader()
     {
-        if (files)
+        if (_module)
         {
-            std::free(files);
-            files = nullptr;
+            vkDestroyShaderModule((const VkDevice)_instance.getLogicalDevice(), (VkShaderModule)_module, nullptr);
+            _module = nullptr;
         }
-        glDeleteProgram(_id);
     }
 
-    void Shader::use() const
-    {
-        glUseProgram(_id);
+#ifdef NO_SHADERC
+    Shader::STATUS Shader::fromFileAsGLSL(const std::string& filename) 
+    { 
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("livre");
+#   endif
+        WARN_LOG("Shaderc not loaded.");
+
+        return STATUS::SHADERC_NOT_LOADED; 
     }
-
-    Shader::File Shader::getFile(const TYPE& type) const
-    {
-        for (int i = 0; i < _count; i++)
-            if (files[i].type == type)
-                return files[i];
-
-        return { NONE, 0 };
-    }
-
-    Shader::STATUS Shader::fromFile(const TYPE& type, const std::string& filename) const 
+    Shader::STATUS Shader::fromStringAsGLSL(const std::string& filename) 
     {
 #   ifdef LIVRE_LOGGING
         auto logger = spdlog::get("livre");
 #   endif
-        Shader::File shaderFile = getFile(type);
-        TRACE_LOG("Loading shader ({0}) from file '{1}'.", (int)shaderFile.id, filename);
+        WARN_LOG("Shaderc not loaded.");
 
-#   ifndef LIVRE_LOGGING
-        if (shaderFile.type == TYPE::NONE) 
-            return STATUS::SHADER_NOT_MADE;
-        else if (!shaderFile.id)
-            return STATUS::OPENGL_CREATESHADER_FAILED;
-#   else
-        if (shaderFile.type == TYPE::NONE) 
-            { logger->error("Shader (type {}) not present!", (int)(type)); return STATUS::SHADER_NOT_MADE; }
-        else if (!shaderFile.id)
-            { logger->error("OpenGL failed to create shader (type {})!", (int)(type)); return STATUS::OPENGL_CREATESHADER_FAILED; }
+        return STATUS::SHADERC_NOT_LOADED; 
+    }
+
+#else
+    Shader::STATUS Shader::fromFileAsGLSL(const std::string& filename)
+    {
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("livre");
 #   endif
 
         std::ifstream file(filename);
@@ -108,104 +62,93 @@ namespace livre
         std::string content( (std::istreambuf_iterator<char>(file) ),
                        (std::istreambuf_iterator<char>()    ) );
 
-        return fromString(type, content);
+        return fromStringAsGLSL(content, filename);
     }
 
-    Shader::STATUS Shader::fromString(const TYPE& type, const std::string& contents) const 
+    Shader::STATUS Shader::fromStringAsGLSL(const std::string& contents, const std::string& filename)
     {
 #   ifdef LIVRE_LOGGING
         auto logger = spdlog::get("livre");
 #   endif
 
-#   ifndef LIVRE_LOGGING
-        if (!_id) return OPENGL_CREATESHADER_FAILED;
-#   else
-        if (!_id) 
-        { logger->error("OpenGL failed to create shader (type {})!", (int)type); return OPENGL_CREATESHADER_FAILED; }
-#   endif
+        shaderc::Compiler compiler;
+        shaderc::CompileOptions options;
 
-        use();
+        shaderc_shader_kind kind;
+        if      (_type == TYPE::VERTEX)   kind = shaderc_glsl_vertex_shader;
+        else if (_type == TYPE::FRAGMENT) kind = shaderc_glsl_fragment_shader;
+
+        options.SetOptimizationLevel(shaderc_optimization_level_size);
+        shaderc::PreprocessedSourceCompilationResult pp = compiler.PreprocessGlsl(contents, kind, filename.c_str(), options);
+        shaderc::SpvCompilationResult compiling = compiler.CompileGlslToSpv(contents, kind, filename.c_str(), options);
         
-        Shader::File shaderFile = getFile(type);
-
-        const char* c_str = contents.c_str();
-        int length        = contents.length();
-        glShaderSource(shaderFile.id, 1, &c_str, &length);
-        glCompileShader(shaderFile.id);
-
-        int success;
-        glGetShaderiv(shaderFile.id, GL_COMPILE_STATUS, &success);
-#   ifndef LIVRE_LOGGING
-        if (!success) return STATUS::SHADER_COMPILE_ERROR;
-#   else
-        if (!success)
+        if (compiling.GetNumErrors() > 0)
         {
-            char infoLog[512];
-            glGetShaderInfoLog(shaderFile.id, 512, nullptr, infoLog);
-
-            std::string content = "Error compiling ";
-
-            switch (shaderFile.type)
-            {
-            case TYPE::VERTEX:
-                content += "VERTEX";
-                break;
-                
-            case TYPE::FRAGMENT:
-                content += "FRAGMENT";
-                break;
-
-            case TYPE::COMPUTE:
-                content += "COMPUTE";
-                break;
-            }
-
-            content += " shader!\n";
-            content += infoLog;
-
-            logger->error(content);
-
-            return STATUS::SHADER_COMPILE_ERROR;
+            ERROR_LOG("Error compiling shader:\n{}", compiling.GetErrorMessage());
+            return COMPILATION_ERROR;
         }
-#   endif
 
-        glAttachShader(_id, shaderFile.id);
+        if (filename != "shader.glsl")
+            INFO_LOG("Shader '{}' compiled successfully.", filename);
+        else
+            INFO_LOG("Successfully compiled shader!");
 
-#   ifdef LIVRE_LOGGING
-        logger->info("Shader (type {}) compiled successfully!", (int)type);
-#   endif
-        return STATUS::SUCCESS;
+        return fromSPIR(compiling.begin(), std::distance(compiling.begin(), compiling.end()) * sizeof(uint32_t));
     }
+#endif
 
-    Shader::STATUS Shader::link() const
+    Shader::STATUS Shader::fromFileAsSPIR(const std::string& filename)
     {
 #   ifdef LIVRE_LOGGING
         auto logger = spdlog::get("livre");
 #   endif
 
-        use();
+        std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
-        glLinkProgram(_id);
-
-        int success;
-        glGetProgramiv(_id, GL_LINK_STATUS, &success);
 #   ifndef LIVRE_LOGGING
-        if (!success) return STATUS::PROGRAM_LINK_ERROR;
+        if (!file) return STATUS::FILE_DOESNT_EXIST;
 #   else
-        if (!success)
-        {
-            char infoLog[512];
-            glGetProgramInfoLog(_id, 512, nullptr, infoLog);
-            std::cout << "Error linking program!\n" << infoLog << "\n";
+        if (!file) { logger->error("File '{}' does not exist!", filename); return STATUS::FILE_DOESNT_EXIST;}
+#   endif
 
-            logger->error("Error linking program {0}!\n{1}", _id, infoLog);
-            return STATUS::PROGRAM_LINK_ERROR;
-        }
+        size_t fileSize = (size_t) file.tellg();
+        uint32_t* contents  = (uint32_t*)std::malloc(fileSize);
+
+        file.seekg(0);
+        file.read((char*)contents, fileSize);
+        file.close();
+
+        STATUS status = fromSPIR(contents, fileSize);
+
+        std::free(contents);
+        return status;
+    }
+
+    Shader::STATUS Shader::fromSPIR(const uint32_t* contents, const size_t& size)
+    {
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("livre");
 #   endif
         
-#   ifdef LIVRE_LOGGING
-        logger->info("Program ({}) linked successfully!", _id);
-#   endif
-        return STATUS::SUCCESS;
+        TRACE_LOG("Creating shader module ({} bytes)...", size);
+        VkShaderModule module;
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = size;
+        createInfo.pCode = contents;
+
+        VkResult result = vkCreateShaderModule((const VkDevice)_instance.getLogicalDevice(), &createInfo, nullptr, &module);
+        TRACE_LOG("...done");
+
+        if (result != VK_SUCCESS)
+        {
+            ERROR_LOG("Error creating shader module!");
+            return VULKAN_ERROR;
+        }
+
+        _module = module;
+        INFO_LOG("Shader module created successfully.");
+
+        return SUCCESS;
     }
 }

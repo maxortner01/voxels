@@ -3,6 +3,7 @@
 
 // used in render instance... for now
 #include <optional>
+#include <iterator>
 
 #ifdef LIVRE_LOGGING
 #   include <vulkan/vk_enum_string_helper.h>

@@ -8,6 +8,12 @@ int main()
 {
     Window window(1280, 720);
     
+    Shader vertex(window.getInstance(), Shader::TYPE::VERTEX);
+    vertex.fromFileAsGLSL("vertex.glsl");
+
+    Shader fragment(window.getInstance(), Shader::TYPE::FRAGMENT);
+    fragment.fromFileAsGLSL("fragment.glsl");
+
     /*
     Shader shader(Shader::TYPE::VERTEX | Shader::TYPE::FRAGMENT);
     

@@ -41,6 +41,8 @@ namespace Graphics
     public:
         RenderInstance(void* window, const std::string& title = "vulkan");
         ~RenderInstance();
+
+        const void* getLogicalDevice() const;
     };
 }
 }

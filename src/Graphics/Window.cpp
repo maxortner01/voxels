@@ -87,6 +87,11 @@ namespace livre
     {
         glfwSwapBuffers((win)window);
     }
+
+    const Graphics::RenderInstance& Window::getInstance() const
+    {
+        return *instance;
+    }
 } 
 
 #undef win

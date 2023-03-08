@@ -23,5 +23,7 @@ namespace livre
         const bool open() const;
         const void pollEvents() const;
         const void update() const;
+
+        const Graphics::RenderInstance& getInstance() const;
     };
 }

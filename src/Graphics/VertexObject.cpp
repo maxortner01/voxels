@@ -116,7 +116,7 @@ namespace livre
         bind();
         getBuffer(BufferObject::BUFFERTYPE::VERTEX)->bind();
 
-        shader.use();
+        //shader.use();
 
         glDrawElements(GL_LINES, _index_count, GL_UNSIGNED_INT, _indices);
         unbind();

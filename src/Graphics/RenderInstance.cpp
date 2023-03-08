@@ -705,5 +705,10 @@ namespace Graphics
         vkDestroyInstance((VkInstance)instance, nullptr);
         TRACE_LOG("...done");
     }
+
+    const void* RenderInstance::getLogicalDevice() const
+    {
+        return logicalDevice;
+    }
 }
 }

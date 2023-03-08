@@ -2,56 +2,43 @@
 
 #include "livre/header.h"
 
+#include "RenderInstance.h"
+
 namespace livre
 {
     class DLLOUT Shader
     {
     public:
+        enum TYPE
+        {
+            NONE, 
+            VERTEX,
+            FRAGMENT
+        };
+
         enum STATUS
         {
             SUCCESS,
-            OPENGL_CREATEPROGRAM_FAILED,
-            SHADER_NOT_MADE,
-            OPENGL_CREATESHADER_FAILED,
             FILE_DOESNT_EXIST,
-            SHADER_COMPILE_ERROR,
-            PROGRAM_LINK_ERROR,
-            COMPILED,
-            CREATED,
-            DELETED
+            COMPILATION_ERROR,
+            SHADERC_NOT_LOADED,
+            VULKAN_ERROR
         };
 
-        enum TYPE
-        {
-            NONE     = 0,
-            VERTEX   = 1,
-            FRAGMENT = 2,
-            COMPUTE  = 4,
-        };
-
-        struct File
-        {
-            TYPE type;
-            uint32_t id;
-        };
-    
     private:
-        uint32_t _id;
-        wchar_t _count;
-        File* files;
+        TYPE _type;
+        void* _module;
+
+        const Graphics::RenderInstance& _instance;
 
     public:
-
-        Shader(const wchar_t& type);
+        Shader(const Graphics::RenderInstance& instance, const TYPE& type);
         ~Shader();
-        
-        void use() const;
 
-        File getFile(const TYPE& type) const;
+        STATUS fromFileAsGLSL(const std::string& filename);
+        STATUS fromStringAsGLSL(const std::string& contents, const std::string& filename = "shader.glsl");
 
-        STATUS fromFile(const TYPE& type, const std::string& filename) const;
-        STATUS fromString(const TYPE& type, const std::string& contents) const;
-
-        STATUS link() const;
+        STATUS fromFileAsSPIR(const std::string& filename);
+        STATUS fromSPIR(const uint32_t* contents, const size_t& size);
     };
 }
