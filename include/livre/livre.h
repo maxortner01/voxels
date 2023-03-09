@@ -7,3 +7,4 @@
 #include "Graphics/BufferObject.h"
 #include "Graphics/VertexObject.h"
 #include "Graphics/RenderInstance.h"
+#include "Graphics/GraphicsPipeline.h"

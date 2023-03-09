@@ -11,8 +11,8 @@
 
 namespace livre
 {
-    Shader::Shader(const Graphics::RenderInstance& instance, const TYPE& type) :
-        _type(type), _instance(instance), _module(nullptr)
+    Shader::Shader(const Graphics::RenderInstance& instance, const TYPE& type, const std::string& title) :
+        InstanceObject(instance), _type(type), _module(nullptr), _title(title), _complete(false)
     {   }
 
     Shader::~Shader()
@@ -51,6 +51,8 @@ namespace livre
         auto logger = spdlog::get("livre");
 #   endif
 
+        _title = filename;
+
         std::ifstream file(filename);
 
 #   ifndef LIVRE_LOGGING
@@ -70,6 +72,8 @@ namespace livre
 #   ifdef LIVRE_LOGGING
         auto logger = spdlog::get("livre");
 #   endif
+
+        _title = filename;
 
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
@@ -102,6 +106,8 @@ namespace livre
 #   ifdef LIVRE_LOGGING
         auto logger = spdlog::get("livre");
 #   endif
+
+        _title = filename;
 
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -147,8 +153,36 @@ namespace livre
         }
 
         _module = module;
-        INFO_LOG("Shader module created successfully.");
+        INFO_LOG("Shader module ({}) created successfully.", _title);
+
+        _complete = true;
 
         return SUCCESS;
+    }
+
+    bool Shader::isComplete() const
+    { return _complete; }
+
+    void* Shader::getModule() const 
+    { return _module; }
+
+    Shader::TYPE Shader::getType() const
+    { return _type; }
+
+    void Shader::getShaderStageInfo(void* info) const
+    {
+        VkShaderStageFlagBits type;
+        if      (_type == VERTEX)   type = VK_SHADER_STAGE_VERTEX_BIT;
+        else if (_type == FRAGMENT) type = VK_SHADER_STAGE_FRAGMENT_BIT;
+        else if (_type == COMPUTE)  type = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = type;
+        
+        vertShaderStageInfo.module = (VkShaderModule)_module;
+        vertShaderStageInfo.pName  = "main";
+
+        std::memcpy(info, &vertShaderStageInfo, sizeof(VkPipelineShaderStageCreateInfo));
     }
 }

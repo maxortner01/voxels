@@ -25,3 +25,5 @@
 #include "./Graphics/BufferObject.cpp"
 #include "./Graphics/VertexObject.cpp"
 #include "./Graphics/RenderInstance.cpp"
+#include "./Graphics/Pipeline.cpp"
+#include "./Graphics/GraphicsPipeline.cpp"

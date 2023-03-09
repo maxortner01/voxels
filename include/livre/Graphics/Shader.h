@@ -2,18 +2,19 @@
 
 #include "livre/header.h"
 
-#include "RenderInstance.h"
+#include "InstanceObject.h"
 
 namespace livre
 {
-    class DLLOUT Shader
+    class DLLOUT Shader : public Graphics::InstanceObject
     {
     public:
         enum TYPE
         {
             NONE, 
             VERTEX,
-            FRAGMENT
+            FRAGMENT,
+            COMPUTE
         };
 
         enum STATUS
@@ -26,13 +27,15 @@ namespace livre
         };
 
     private:
+        std::string _title;
+
         TYPE _type;
         void* _module;
 
-        const Graphics::RenderInstance& _instance;
+        bool _complete;
 
     public:
-        Shader(const Graphics::RenderInstance& instance, const TYPE& type);
+        Shader(const Graphics::RenderInstance& instance, const TYPE& type, const std::string& title = "shader.glsl");
         ~Shader();
 
         STATUS fromFileAsGLSL(const std::string& filename);
@@ -40,5 +43,11 @@ namespace livre
 
         STATUS fromFileAsSPIR(const std::string& filename);
         STATUS fromSPIR(const uint32_t* contents, const size_t& size);
+
+        bool isComplete() const;
+        void* getModule() const;
+        TYPE  getType() const;
+
+        void getShaderStageInfo(void* info) const;
     };
 }
