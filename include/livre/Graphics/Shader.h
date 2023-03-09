@@ -6,6 +6,13 @@
 
 namespace livre
 {
+    /**
+     * @brief A singular shader object.
+     * 
+     * This object represents one shader to be compiled. Contains methods to 
+     * read files and compile text (assuming NO_SHADERC isn't defined) glsl
+     * into a Vulkan shader module.
+     */
     class DLLOUT Shader : public Graphics::InstanceObject
     {
     public:
@@ -37,7 +44,7 @@ namespace livre
     public:
         Shader(const Graphics::RenderInstance& instance, const TYPE& type, const std::string& title = "shader.glsl");
         ~Shader();
-
+        
         STATUS fromFileAsGLSL(const std::string& filename);
         STATUS fromStringAsGLSL(const std::string& contents, const std::string& filename = "shader.glsl");
 

@@ -707,8 +707,34 @@ namespace Graphics
     }
 
     const void* RenderInstance::getLogicalDevice() const
+    { return logicalDevice; }
+
+    const RenderInstance::SwapChainImages& RenderInstance::getSwapChainImages() const
+    { return *_swapChainImages; }
+
+    void* RenderInstance::makeCommandPool() const
     {
-        return logicalDevice;
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("vulkan");
+#   endif
+        VkCommandPool commandPool;
+
+        QueueFamilyIndices queueFamilyIndices = _findQueueFamilies((VkPhysicalDevice)physicalDevice, (VkSurfaceKHR)surface);
+
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+        VkResult result = vkCreateCommandPool((VkDevice)logicalDevice, &poolInfo, nullptr, &commandPool);
+        if (result != VK_SUCCESS)
+#   ifdef LIVRE_LOGGING
+        { ERROR_LOG("Error creating command pool."); return nullptr; }
+#   else
+            return nullptr;
+#   endif
+
+        return (void*)commandPool;
     }
 }
 }

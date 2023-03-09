@@ -7,12 +7,11 @@ using namespace livre;
 int main()
 {
     Window window(1280, 720);
-    
-    Shader vertex(window.getInstance(), Shader::TYPE::VERTEX);
-    vertex.fromFileAsGLSL("vertex.glsl");
 
-    Shader fragment(window.getInstance(), Shader::TYPE::FRAGMENT);
-    fragment.fromFileAsGLSL("fragment.glsl");
+    GraphicsPipeline pipeline(window.getInstance());
+    pipeline.getVertexShader().fromFileAsGLSL("vertex.glsl");
+    pipeline.getFragmentShader().fromFileAsGLSL("fragment.glsl");
+    pipeline.create();
 
     /*
     Shader shader(Shader::TYPE::VERTEX | Shader::TYPE::FRAGMENT);

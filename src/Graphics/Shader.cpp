@@ -17,9 +17,15 @@ namespace livre
 
     Shader::~Shader()
     {
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("vulkan");
+#   endif
+
         if (_module)
         {
+            TRACE_LOG("Destroying shader '{}'...", _title);
             vkDestroyShaderModule((const VkDevice)_instance.getLogicalDevice(), (VkShaderModule)_module, nullptr);
+            TRACE_LOG("...done");
             _module = nullptr;
         }
     }

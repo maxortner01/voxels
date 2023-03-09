@@ -12,7 +12,12 @@ namespace livre
         enum STATUS
         {
             SUCCESS,
-            SHADER_NOT_COMPLETE
+            SHADER_NOT_COMPLETE,
+            PIPELINE_LAYOUT_CREATE_FAILED,
+            RENDER_PASS_CREATE_FAILED,
+            PIPELINE_CREATE_FAILED,
+            FRAMEBUFFER_CREATE_FAILED,
+            COMMAND_BUFFER_CREATE_FAILED
         };
 
     protected:
@@ -20,14 +25,19 @@ namespace livre
         Shader** shaders;
         size_t shader_count;
 
+        void* _pipelineLayout;
+        void* _pipeline;
+
         virtual void _initShaders() = 0;
 
     public:
         Pipeline(const Graphics::RenderInstance& instance);
         virtual ~Pipeline();
 
+        bool isComplete() const;
+
         Shader* getShader(const Shader::TYPE& type);
 
-        virtual STATUS bind() = 0;
+        virtual STATUS create() = 0;
     };
 }

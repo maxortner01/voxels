@@ -6,6 +6,12 @@ namespace livre
 {
 namespace Graphics
 {
+    /**
+     * @brief Contains constant RenderInstance reference.
+     * 
+     * This is an easy way to extend the ability to reference a RenderInstance
+     * object to various sub-classes
+     */
     class InstanceObject
     {
     protected:
