@@ -13,7 +13,7 @@ namespace Graphics
         uint32_t layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-        VkLayerProperties* availableLayers = (VkLayerProperties*)std::malloc(sizeof(VkLayerProperties) * layerCount);
+        VkLayerProperties* availableLayers = (VkLayerProperties*)LIVRE_ALLOC(sizeof(VkLayerProperties) * layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
 
         for (int i = 0; i < layerCount; i++)
@@ -111,7 +111,7 @@ namespace Graphics
 
         if (!queueFamilyCount) { ERROR_LOG("No queue families for this device!"); return queueFamilies; }
 
-        VkQueueFamilyProperties* properties = (VkQueueFamilyProperties*)std::malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
+        VkQueueFamilyProperties* properties = (VkQueueFamilyProperties*)LIVRE_ALLOC(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, properties);
 
         for (int i = 0; i < queueFamilyCount; i++)
@@ -156,13 +156,13 @@ namespace Graphics
 
         if (info.formatCount)
         {
-            info.formats = (VkSurfaceFormatKHR*)std::malloc(sizeof(VkSurfaceFormatKHR) * info.formatCount);
+            info.formats = (VkSurfaceFormatKHR*)LIVRE_ALLOC(sizeof(VkSurfaceFormatKHR) * info.formatCount);
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &info.formatCount, info.formats);
         }
 
         if (info.presentModeCount)
         {
-            info.presentModes = (VkPresentModeKHR*)std::malloc(sizeof(VkPresentModeKHR) * info.presentModeCount);
+            info.presentModes = (VkPresentModeKHR*)LIVRE_ALLOC(sizeof(VkPresentModeKHR) * info.presentModeCount);
             vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &info.presentModeCount, info.presentModes);
         }
 
@@ -182,7 +182,7 @@ namespace Graphics
 
         if (!deviceCount) { ERROR_LOG("No devices with Vulkan support!"); return; }
 
-        VkPhysicalDevice* devices = (VkPhysicalDevice*)std::malloc(sizeof(VkPhysicalDevice) * deviceCount);
+        VkPhysicalDevice* devices = (VkPhysicalDevice*)LIVRE_ALLOC(sizeof(VkPhysicalDevice) * deviceCount);
         vkEnumeratePhysicalDevices((VkInstance)instance, &deviceCount, devices);
 
         for (int i = 0; i < deviceCount; i++)
@@ -199,7 +199,7 @@ namespace Graphics
             uint32_t extensionCount;
             vkEnumerateDeviceExtensionProperties(devices[i], nullptr, &extensionCount, nullptr);
             
-            VkExtensionProperties* extProperties = (VkExtensionProperties*)std::malloc(sizeof(VkExtensionProperties) * extensionCount);
+            VkExtensionProperties* extProperties = (VkExtensionProperties*)LIVRE_ALLOC(sizeof(VkExtensionProperties) * extensionCount);
             vkEnumerateDeviceExtensionProperties(devices[i], nullptr, &extensionCount, extProperties);
 
             // Go through each of the supported extensions and make sure the 
@@ -262,7 +262,7 @@ namespace Graphics
         uint32_t uniqueFamiliesCount = sizeof(uniqueQueueFamilies) / sizeof(uint32_t);
         if (uniqueQueueFamilies[1] == uniqueQueueFamilies[0]) uniqueFamiliesCount--;
 
-        VkDeviceQueueCreateInfo* queueCreateInfos = (VkDeviceQueueCreateInfo*)std::malloc(sizeof(VkDeviceQueueCreateInfo) * uniqueFamiliesCount);
+        VkDeviceQueueCreateInfo* queueCreateInfos = (VkDeviceQueueCreateInfo*)LIVRE_ALLOC(sizeof(VkDeviceQueueCreateInfo) * uniqueFamiliesCount);
         std::memset(queueCreateInfos, 0, sizeof(VkDeviceQueueCreateInfo) * uniqueFamiliesCount);
 
         float queuePriority = 1.0f;
@@ -292,7 +292,7 @@ namespace Graphics
         int extra_index = 0;
 #   endif
         
-        const char** devExtensions = (const char**)std::malloc(sizeof(const char*) * (requiredCount + extra_index));
+        const char** devExtensions = (const char**)LIVRE_ALLOC(sizeof(const char*) * (requiredCount + extra_index));
         std::memcpy(devExtensions, requiredExtensions, sizeof(const char*) * requiredCount);
 
 #   ifdef __APPLE__
@@ -303,7 +303,7 @@ namespace Graphics
         createInfo.enabledExtensionCount = requiredCount + extra_index;
 
 #   ifdef LIVRE_LOGGING
-        const char** validation = (const char**)std::malloc(sizeof(const char*));
+        const char** validation = (const char**)LIVRE_ALLOC(sizeof(const char*));
         validation[0] = "VK_LAYER_KHRONOS_validation";
 
         createInfo.enabledLayerCount = 1;
@@ -475,13 +475,13 @@ namespace Graphics
         std::memset(_swapChainImages, 0, sizeof(SwapChainImages));
 
         vkGetSwapchainImagesKHR((VkDevice)logicalDevice, _swapChain, &(_swapChainImages->imageCount), nullptr);
-        _swapChainImages->images = std::malloc(sizeof(VkImage) * _swapChainImages->imageCount);
+        _swapChainImages->images = LIVRE_ALLOC(sizeof(VkImage) * _swapChainImages->imageCount);
         vkGetSwapchainImagesKHR((VkDevice)logicalDevice, _swapChain, &(_swapChainImages->imageCount), (VkImage*)(_swapChainImages->images));
 
-        _swapChainImages->format = std::malloc(sizeof(VkFormat));
+        _swapChainImages->format = LIVRE_ALLOC(sizeof(VkFormat));
         std::memcpy(_swapChainImages->format, &surfaceFormat.format, sizeof(VkFormat));
 
-        _swapChainImages->extent = std::malloc(sizeof(VkExtent2D));
+        _swapChainImages->extent = LIVRE_ALLOC(sizeof(VkExtent2D));
         std::memcpy(_swapChainImages->extent, &extent, sizeof(VkExtent2D));
 
         swapChain = _swapChain;
@@ -495,7 +495,7 @@ namespace Graphics
         auto logger = spdlog::get("vulkan");
 #   endif
 
-        _swapChainImages->imageViews = std::malloc(sizeof(VkImageView) * _swapChainImages->imageCount);
+        _swapChainImages->imageViews = LIVRE_ALLOC(sizeof(VkImageView) * _swapChainImages->imageCount);
 
         for (uint32_t i = 0; i < _swapChainImages->imageCount; i++)
         {
@@ -528,6 +528,33 @@ namespace Graphics
         }
 
         INFO_LOG("Image views created successfully.");
+    }
+
+    void RenderInstance::_makeCommandPool()
+    {
+#   ifdef LIVRE_LOGGING
+        auto logger = spdlog::get("vulkan");
+#   endif
+        VkCommandPool commandPool;
+
+        QueueFamilyIndices queueFamilyIndices = _findQueueFamilies((VkPhysicalDevice)physicalDevice, (VkSurfaceKHR)surface);
+
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+        VkResult result = vkCreateCommandPool((VkDevice)logicalDevice, &poolInfo, nullptr, &commandPool);
+        if (result != VK_SUCCESS)
+#   ifdef LIVRE_LOGGING
+        { ERROR_LOG("Error creating command pool."); return; }
+#   else
+            return;
+#   endif
+
+        _commandPool = commandPool;
+
+        INFO_LOG("Success creating command pool.");
     }
 
     RenderInstance::RenderInstance(void* window, const std::string& title)
@@ -575,7 +602,7 @@ namespace Graphics
 #   endif   
         
         // Allocate a new string list that includes 
-        const char** requiredExtensions = (const char**)std::malloc(sizeof(const char*) * (glfwExtensionCount + extra_index));
+        const char** requiredExtensions = (const char**)LIVRE_ALLOC(sizeof(const char*) * (glfwExtensionCount + extra_index));
         std::memcpy(requiredExtensions, glfwExtensions, sizeof(const char*) * glfwExtensionCount);
 
         // For apple devices we need to add the portability enumeration extension name
@@ -602,7 +629,7 @@ namespace Graphics
         else
             INFO_LOG("Validation layer supported");
 
-        const char** validation = (const char**)std::malloc(sizeof(const char*));
+        const char** validation = (const char**)LIVRE_ALLOC(sizeof(const char*));
         validation[0] = "VK_LAYER_KHRONOS_validation";
 
         debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -655,6 +682,12 @@ namespace Graphics
 
         TRACE_LOG("Setting up image views.");
         _createImageViews();
+
+        //TRACE_LOG("Setting up sync objects.");
+        //_createSyncObjects();
+
+        TRACE_LOG("Setting up command pool.");
+        _makeCommandPool();
     }
 
     RenderInstance::~RenderInstance()
@@ -693,6 +726,10 @@ namespace Graphics
         }
         TRACE_LOG("...done");
 
+        TRACE_LOG("Destroying Command Pool.");
+        vkDestroyCommandPool((VkDevice)getLogicalDevice(), (VkCommandPool)_commandPool, nullptr);
+        TRACE_LOG("...done");
+
         TRACE_LOG("Destroying surface...");
         vkDestroySurfaceKHR((VkInstance)instance, (VkSurfaceKHR)surface, nullptr);
         TRACE_LOG("...done");
@@ -706,35 +743,44 @@ namespace Graphics
         TRACE_LOG("...done");
     }
 
+    const void* RenderInstance::getCommandPool() const
+    { return _commandPool; }
+
+    const void* RenderInstance::getPresentQueue() const
+    { return presentationQueue; }
+
+    const void* RenderInstance::getGraphicsQueue() const
+    { return graphicsQueue; }
+
     const void* RenderInstance::getLogicalDevice() const
     { return logicalDevice; }
+    
+    const void* RenderInstance::getSwapChain() const
+    { return swapChain; }
 
     const RenderInstance::SwapChainImages& RenderInstance::getSwapChainImages() const
     { return *_swapChainImages; }
 
-    void* RenderInstance::makeCommandPool() const
+    void* RenderInstance::makeCommandBuffer() const
     {
 #   ifdef LIVRE_LOGGING
         auto logger = spdlog::get("vulkan");
 #   endif
-        VkCommandPool commandPool;
 
-        QueueFamilyIndices queueFamilyIndices = _findQueueFamilies((VkPhysicalDevice)physicalDevice, (VkSurfaceKHR)surface);
+        VkCommandBuffer commandBuffer;
 
-        VkCommandPoolCreateInfo poolInfo{};
-        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = (VkCommandPool)_commandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = 1;
 
-        VkResult result = vkCreateCommandPool((VkDevice)logicalDevice, &poolInfo, nullptr, &commandPool);
+        VkResult result = vkAllocateCommandBuffers((VkDevice)logicalDevice, &allocInfo, &commandBuffer);
+
         if (result != VK_SUCCESS)
-#   ifdef LIVRE_LOGGING
-        { ERROR_LOG("Error creating command pool."); return nullptr; }
-#   else
-            return nullptr;
-#   endif
-
-        return (void*)commandPool;
+            ERROR_LOG("Error allocating command buffer!");
+        
+        return (void*)commandBuffer;
     }
 }
 }

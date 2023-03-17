@@ -5,7 +5,7 @@ namespace livre
     void GraphicsPipeline::_initShaders()
     {
         shader_count = 2;
-        shaders = (Shader**)std::malloc(sizeof(Shader*) * shader_count);
+        shaders = (Shader**)LIVRE_ALLOC(sizeof(Shader*) * shader_count);
         
         shaders[0] = new Shader(_instance, Shader::TYPE::VERTEX);
         shaders[1] = new Shader(_instance, Shader::TYPE::FRAGMENT);
@@ -135,7 +135,7 @@ namespace livre
         STATUS render = _createRenderPass();
         if (render != SUCCESS) return render;
 
-        VkPipelineShaderStageCreateInfo* shaderStages = (VkPipelineShaderStageCreateInfo*)std::malloc(sizeof(VkPipelineShaderStageCreateInfo) * 2);
+        VkPipelineShaderStageCreateInfo* shaderStages = (VkPipelineShaderStageCreateInfo*)LIVRE_ALLOC(sizeof(VkPipelineShaderStageCreateInfo) * 2);
         getVertexShader()  .getShaderStageInfo((void*)(shaderStages + 0));
         getFragmentShader().getShaderStageInfo((void*)(shaderStages + 1));
 
@@ -222,6 +222,17 @@ namespace livre
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
 
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+
         VkRenderPass renderPass;
 
         VkResult result = vkCreateRenderPass((VkDevice)_instance.getLogicalDevice(), &renderPassInfo, nullptr, &renderPass);
@@ -248,7 +259,7 @@ namespace livre
 
         VkExtent2D extent = *((VkExtent2D*)_instance.getSwapChainImages().extent);
 
-        _swapChainFramebuffers = std::malloc(sizeof(VkFramebuffer) * _instance.getSwapChainImages().imageCount);
+        _swapChainFramebuffers = LIVRE_ALLOC(sizeof(VkFramebuffer) * _instance.getSwapChainImages().imageCount);
 
         for (uint32_t i = 0; i < _instance.getSwapChainImages().imageCount; i++) {
             TRACE_LOG("Creating swapchain framebuffer {}.", i);
@@ -277,13 +288,24 @@ namespace livre
 
         INFO_LOG("Created swapchain framebuffers successfully!");
 
-        TRACE_LOG("Creating command pool for graphics pipeline.");
-        _commandPool = _instance.makeCommandPool();
+        //TRACE_LOG("Creating command pool for graphics pipeline.");
+        ///*_commandPool = */_instance.makeCommandPool();
 
+        /*
         if (!_commandPool)
         { ERROR_LOG("Command pool create failed."); return COMMAND_BUFFER_CREATE_FAILED; }
 
-        INFO_LOG("Command pool created successfully.");
+        INFO_LOG("Command pool created successfully.");*/
+
+        //ModelObject::makeCommandBuffer((VkCommandPool)_instance.getCommandPool(), _instance.getLogicalDevice());
+
+        //if (ModelObject::commandBuffer() == nullptr)
+        //{
+        //    ERROR_LOG("Error creating command buffer for ModelObject!");
+        //    return COMMAND_BUFFER_CREATE_FAILED;
+        //}
+        //else
+        //    INFO_LOG("Command buffer for Model Object created successfully.");
 
         return SUCCESS;
     }
@@ -298,13 +320,13 @@ namespace livre
         auto logger = spdlog::get("vulkan");
 #   endif
 
-        if (_commandPool)
-        {
-            TRACE_LOG("Destroying command pool...");
-            vkDestroyCommandPool((VkDevice)_instance.getLogicalDevice(), (VkCommandPool)_commandPool, nullptr);
-            TRACE_LOG("...done");
-            _commandPool = nullptr;
-        }
+        //if (_commandPool)
+        //{
+        //    TRACE_LOG("Destroying command pool...");
+        //    vkDestroyCommandPool((VkDevice)_instance.getLogicalDevice(), (VkCommandPool)_commandPool, nullptr);
+        //    TRACE_LOG("...done");
+        //    _commandPool = nullptr;
+        //}
 
         if (_swapChainFramebuffers)
         {
@@ -335,6 +357,12 @@ namespace livre
             _pipeline = nullptr;
         }
     }
+
+    const void* GraphicsPipeline::getFramebuffers() const 
+    { return _swapChainFramebuffers; }
+
+    const void* GraphicsPipeline::getRenderPass() const
+    { return _renderPass; }
 
     void GraphicsPipeline::setMode(const MODE& mode)
     { _mode = mode; }

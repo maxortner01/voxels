@@ -13,6 +13,11 @@ int main()
     pipeline.getFragmentShader().fromFileAsGLSL("fragment.glsl");
     pipeline.create();
 
+    Renderer::CreateInfo info;
+    Renderer renderer(info, window.getInstance());
+
+    ModelObject object;
+
     /*
     Shader shader(Shader::TYPE::VERTEX | Shader::TYPE::FRAGMENT);
     
@@ -47,7 +52,15 @@ int main()
     while (window.open())
     {
         window.pollEvents();
+        //object.draw(pipeline);
+        //renderer.draw();
+
+        renderer.startFrame();
+        object.draw(renderer, pipeline);
+        renderer.endFrame();
     }
+
+    window.waitForIdle();
 
     return 0;
 }

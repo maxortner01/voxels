@@ -30,6 +30,9 @@ namespace livre
         }
     }
 
+    const void* Pipeline::getPipeline() const 
+    { return _pipeline; }
+
     bool Pipeline::isComplete() const
     { return (_pipeline != nullptr && _pipelineLayout != nullptr); }
 

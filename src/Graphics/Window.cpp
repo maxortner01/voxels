@@ -92,6 +92,11 @@ namespace livre
     {
         return *instance;
     }
+
+    void Window::waitForIdle() const
+    {
+        vkDeviceWaitIdle((VkDevice)instance->getLogicalDevice());
+    }
 } 
 
 #undef win

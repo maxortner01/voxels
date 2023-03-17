@@ -5,6 +5,8 @@
 #include <optional>
 #include <iterator>
 
+#define LIVRE_ALLOC(Args...) std::malloc(Args)
+
 #ifdef LIVRE_LOGGING
 #   include <vulkan/vk_enum_string_helper.h>
 #   include <spdlog/spdlog.h>
@@ -22,8 +24,8 @@
 
 #include "./Graphics/Window.cpp"
 #include "./Graphics/Shader.cpp"
-#include "./Graphics/BufferObject.cpp"
-#include "./Graphics/VertexObject.cpp"
 #include "./Graphics/RenderInstance.cpp"
 #include "./Graphics/Pipeline.cpp"
 #include "./Graphics/GraphicsPipeline.cpp"
+#include "./Graphics/ModelObject.cpp"
+#include "./Graphics/Renderer.cpp"

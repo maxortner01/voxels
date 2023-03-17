@@ -124,7 +124,7 @@ namespace livre
 #   endif
 
         size_t fileSize = (size_t) file.tellg();
-        uint32_t* contents  = (uint32_t*)std::malloc(fileSize);
+        uint32_t* contents  = (uint32_t*)LIVRE_ALLOC(fileSize);
 
         file.seekg(0);
         file.read((char*)contents, fileSize);

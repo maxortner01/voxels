@@ -6,6 +6,11 @@
 
 namespace livre
 {
+    /**
+     * @brief Interface to rendering with Vulkan.
+     * 
+     * Contains RenderInstance object.
+     */
     class GraphicsPipeline : public Pipeline
     {
     public:
@@ -20,7 +25,6 @@ namespace livre
         MODE _mode;
         void* _renderPass;
         void* _swapChainFramebuffers;
-        void* _commandPool;
 
     protected:
         void _initShaders() override;
@@ -33,6 +37,9 @@ namespace livre
     public:
         GraphicsPipeline(const Graphics::RenderInstance& instance);
         ~GraphicsPipeline();
+
+        const void* getFramebuffers() const;
+        const void* getRenderPass() const;
 
         void setMode(const MODE& mode);
         MODE getMode() const;

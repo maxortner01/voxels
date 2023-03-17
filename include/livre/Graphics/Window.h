@@ -25,5 +25,7 @@ namespace livre
         const void update() const;
 
         const Graphics::RenderInstance& getInstance() const;
+
+        void waitForIdle() const;
     };
 }

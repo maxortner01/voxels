@@ -34,6 +34,8 @@ namespace livre
         Pipeline(const Graphics::RenderInstance& instance);
         virtual ~Pipeline();
 
+        const void* getPipeline() const;
+
         bool isComplete() const;
 
         Shader* getShader(const Shader::TYPE& type);

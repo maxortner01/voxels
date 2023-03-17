@@ -21,6 +21,9 @@ namespace Graphics
         InstanceObject(const RenderInstance& instance) :
             _instance(instance)
         {   }
+
+        const RenderInstance& getInstance() const 
+        { return _instance; }
     };
 }
 }

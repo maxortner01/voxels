@@ -33,6 +33,7 @@ namespace Graphics
         void* presentationQueue;
         void* graphicsQueue;
         void* swapChain;
+        void* _commandPool;
 
         SwapChainImages* _swapChainImages;
 
@@ -43,15 +44,20 @@ namespace Graphics
         void _initSurface(void* window);
         void _createSwapChain(void* window);
         void _createImageViews();
+        void _makeCommandPool();
 
     public:
         RenderInstance(void* window, const std::string& title = "vulkan");
         ~RenderInstance();
 
+        const void* getCommandPool() const;
+        const void* getPresentQueue() const;
+        const void* getGraphicsQueue() const;
         const void* getLogicalDevice() const;
+        const void* getSwapChain() const;
         const SwapChainImages& getSwapChainImages() const;
 
-        void* makeCommandPool() const;
+        void* makeCommandBuffer() const;
     };
 }
 }
