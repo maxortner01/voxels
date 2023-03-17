@@ -8,4 +8,4 @@ There isn't a CMAKE option yet, but removing `-DLIVRE_LOGGING` removes the autom
 The `Renderer` object does all the important stuff. A call to `renderer.startFrame()` begins the recording for the frame. This should be followed by the various draw commands. Then `renderer.endFrame()` finishes the command buffer and submits it to the queue. 
 
 ### Draw Commands
-While not currently abstract (TBD), the idea is that all draw calls require a renderer as well as a pipeline. The pipeline describes how the drawing is to be done, the renderer is the utility that performs the drawing.
+All draw calls require a renderer as well as a pipeline. The pipeline describes how the drawing is to be done, the renderer is the utility that performs the drawing. Any drawable object can be rendered with `renderer.draw(object, pipeline)`.

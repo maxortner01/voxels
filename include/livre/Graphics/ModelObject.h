@@ -6,7 +6,7 @@
 
 namespace livre
 {
-    class DLLOUT ModelObject
+    class DLLOUT ModelObject : public Graphics::Drawable
     {
         friend class GraphicsPipeline;
 
@@ -16,6 +16,6 @@ namespace livre
     public:
         //ModelObject();
 
-        void draw(const Renderer& _renderer, const GraphicsPipeline& _pipeline) const;
+        void draw(const Renderer& _renderer, const GraphicsPipeline& _pipeline) const override;
     };
 }

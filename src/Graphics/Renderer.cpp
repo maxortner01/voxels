@@ -105,6 +105,11 @@ namespace livre
         }
     }
 
+    void Renderer::draw(const Graphics::Drawable& object, const GraphicsPipeline& _pipeline) const
+    {
+        object.draw(*(const Renderer*)this, _pipeline);
+    }
+
     void Renderer::endFrame()
     {
 #   ifdef LIVRE_LOGGING

@@ -56,7 +56,7 @@ int main()
         //renderer.draw();
 
         renderer.startFrame();
-        object.draw(renderer, pipeline);
+        renderer.draw(object, pipeline);
         renderer.endFrame();
     }
 

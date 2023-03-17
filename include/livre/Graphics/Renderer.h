@@ -5,6 +5,8 @@
 #include "livre/Graphics/InstanceObject.h"
 #include "livre/Graphics/GraphicsPipeline.h"
 
+#include "Drawable.h"
+
 namespace livre
 {
     class DLLOUT Renderer : public Graphics::InstanceObject
@@ -38,6 +40,8 @@ namespace livre
         const Frame& getCurrentFrame() const;
 
         void startFrame();
+        void draw(const Graphics::Drawable& object, const GraphicsPipeline& _pipeline) const;
         void endFrame();
+
     };
 }
