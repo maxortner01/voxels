@@ -7,8 +7,8 @@ namespace livre
         shader_count = 2;
         shaders = (Shader**)LIVRE_ALLOC(sizeof(Shader*) * shader_count);
         
-        shaders[0] = new Shader(_instance, Shader::TYPE::VERTEX);
-        shaders[1] = new Shader(_instance, Shader::TYPE::FRAGMENT);
+        shaders[0] = new Shader(_renderer.getInstance(), Shader::TYPE::VERTEX);
+        shaders[1] = new Shader(_renderer.getInstance(), Shader::TYPE::FRAGMENT);
     }
 
     Pipeline::STATUS GraphicsPipeline::_createLayouts() 
@@ -41,7 +41,7 @@ namespace livre
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-        const VkExtent2D extent = *(const VkExtent2D*)_instance.getSwapChainImages().extent;
+        const VkExtent2D extent = *(const VkExtent2D*)_renderer.getInstance().getSwapChainImages().extent;
 
         // Dynamic pipeline info
         VkViewport viewport{};
@@ -120,7 +120,7 @@ namespace livre
         pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-        VkResult result = vkCreatePipelineLayout((VkDevice)_instance.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
+        VkResult result = vkCreatePipelineLayout((VkDevice)_renderer.getInstance().getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
 
         if (result != VK_SUCCESS)
 #   ifdef LIVRE_LOGGING
@@ -132,8 +132,9 @@ namespace livre
         _pipelineLayout = pipelineLayout;
         INFO_LOG("Graphics pipeline layout created successfully.");
 
-        STATUS render = _createRenderPass();
-        if (render != SUCCESS) return render;
+    // HERE
+        //STATUS render = _createRenderPass();
+        //if (render != SUCCESS) return render;
 
         VkPipelineShaderStageCreateInfo* shaderStages = (VkPipelineShaderStageCreateInfo*)LIVRE_ALLOC(sizeof(VkPipelineShaderStageCreateInfo) * 2);
         getVertexShader()  .getShaderStageInfo((void*)(shaderStages + 0));
@@ -155,14 +156,14 @@ namespace livre
 
         pipelineInfo.layout = (VkPipelineLayout)_pipelineLayout;
 
-        pipelineInfo.renderPass = (VkRenderPass)_renderPass;
+        pipelineInfo.renderPass = (VkRenderPass)_renderer.getRenderPass();
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1; // Optional
 
         VkPipeline graphicsPipeline;
         TRACE_LOG("Creating graphics pipeline.");
-        result = vkCreateGraphicsPipelines((VkDevice)_instance.getLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
+        result = vkCreateGraphicsPipelines((VkDevice)_renderer.getInstance().getLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
 
         if (result != VK_SUCCESS)
 #   ifdef LIVRE_LOGGING
@@ -180,138 +181,14 @@ namespace livre
         std::free(shaders);
         shaders = nullptr;
 
-        STATUS status = _createFramebuffers();
-        if (status != SUCCESS) return status;
+        //STATUS status = _createFramebuffers();
+        //if (status != SUCCESS) return status;
 
         return SUCCESS;
     }
 
-    Pipeline::STATUS GraphicsPipeline::_createRenderPass()
-    {
-#   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("vulkan");
-#   endif
-
-        TRACE_LOG("Creating render pass.");
-
-        const VkFormat _format = *(const VkFormat*)_instance.getSwapChainImages().format;
-
-        VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = _format;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-        VkAttachmentReference colorAttachmentRef{};
-        colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkSubpassDescription subpass{};
-        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &colorAttachmentRef;
-
-        VkRenderPassCreateInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &colorAttachment;
-        renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subpass;
-
-        VkSubpassDependency dependency{};
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.srcAccessMask = 0;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        
-        renderPassInfo.dependencyCount = 1;
-        renderPassInfo.pDependencies = &dependency;
-
-        VkRenderPass renderPass;
-
-        VkResult result = vkCreateRenderPass((VkDevice)_instance.getLogicalDevice(), &renderPassInfo, nullptr, &renderPass);
-
-        if (result != VK_SUCCESS)
-#   ifdef LIVRE_LOGGING
-        { ERROR_LOG("Error creating render pass."); return RENDER_PASS_CREATE_FAILED; }
-#   else
-            return RENDER_PASS_CREATE_FAILED;
-#   endif
-
-        _renderPass = renderPass;
-
-        INFO_LOG("Render pass created successfully.");
-
-        return SUCCESS;
-    }
-
-    Pipeline::STATUS GraphicsPipeline::_createFramebuffers() 
-    {
-#   ifdef LIVRE_LOGGING
-        auto logger = spdlog::get("vulkan");
-#   endif
-
-        VkExtent2D extent = *((VkExtent2D*)_instance.getSwapChainImages().extent);
-
-        _swapChainFramebuffers = LIVRE_ALLOC(sizeof(VkFramebuffer) * _instance.getSwapChainImages().imageCount);
-
-        for (uint32_t i = 0; i < _instance.getSwapChainImages().imageCount; i++) {
-            TRACE_LOG("Creating swapchain framebuffer {}.", i);
-
-            VkImageView attachments[] = {
-                *((VkImageView*)(_instance.getSwapChainImages().imageViews) + i)
-            };
-
-            VkFramebufferCreateInfo framebufferInfo{};
-            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = (VkRenderPass)_renderPass;
-            framebufferInfo.attachmentCount = 1;
-            framebufferInfo.pAttachments = attachments;
-            framebufferInfo.width = extent.width;
-            framebufferInfo.height = extent.height;
-            framebufferInfo.layers = 1;
-
-            VkResult result = vkCreateFramebuffer((VkDevice)_instance.getLogicalDevice(), &framebufferInfo, nullptr, ((VkFramebuffer*)_swapChainFramebuffers) + i);
-            if (result != VK_SUCCESS)
-#       ifdef LIVRE_LOGGING
-            { ERROR_LOG("Framebuffer {} create failed!", i); return FRAMEBUFFER_CREATE_FAILED; }
-#       else
-                return FRAMEBUFFER_CREATE_FAILED;
-#       endif
-        }
-
-        INFO_LOG("Created swapchain framebuffers successfully!");
-
-        //TRACE_LOG("Creating command pool for graphics pipeline.");
-        ///*_commandPool = */_instance.makeCommandPool();
-
-        /*
-        if (!_commandPool)
-        { ERROR_LOG("Command pool create failed."); return COMMAND_BUFFER_CREATE_FAILED; }
-
-        INFO_LOG("Command pool created successfully.");*/
-
-        //ModelObject::makeCommandBuffer((VkCommandPool)_instance.getCommandPool(), _instance.getLogicalDevice());
-
-        //if (ModelObject::commandBuffer() == nullptr)
-        //{
-        //    ERROR_LOG("Error creating command buffer for ModelObject!");
-        //    return COMMAND_BUFFER_CREATE_FAILED;
-        //}
-        //else
-        //    INFO_LOG("Command buffer for Model Object created successfully.");
-
-        return SUCCESS;
-    }
-
-    GraphicsPipeline::GraphicsPipeline(const Graphics::RenderInstance& instance) :
-        Pipeline(instance), _mode(FILL), _renderPass(nullptr), _swapChainFramebuffers(nullptr)
+    GraphicsPipeline::GraphicsPipeline(const Renderer& instance, const BufferArray* bufferArray) :
+        Pipeline(instance), _mode(FILL), _bufferArray(bufferArray)
     { _initShaders(); }
 
     GraphicsPipeline::~GraphicsPipeline()
@@ -323,46 +200,19 @@ namespace livre
         //if (_commandPool)
         //{
         //    TRACE_LOG("Destroying command pool...");
-        //    vkDestroyCommandPool((VkDevice)_instance.getLogicalDevice(), (VkCommandPool)_commandPool, nullptr);
+        //    vkDestroyCommandPool((VkDevice)_renderer.getInstance().getLogicalDevice(), (VkCommandPool)_commandPool, nullptr);
         //    TRACE_LOG("...done");
         //    _commandPool = nullptr;
         //}
 
-        if (_swapChainFramebuffers)
-        {
-            for (uint32_t i = 0; i < _instance.getSwapChainImages().imageCount; i++)
-            {
-                TRACE_LOG("Destroying swapchain framebuffer {}...", i);
-                vkDestroyFramebuffer((VkDevice)_instance.getLogicalDevice(), *(((VkFramebuffer*)_swapChainFramebuffers) + i), nullptr);
-                TRACE_LOG("...done");
-            }
-
-            std::free(_swapChainFramebuffers);
-            _swapChainFramebuffers = nullptr;
-        }
-
-        if (_renderPass)
-        {
-            TRACE_LOG("Destroying render pass...");
-            vkDestroyRenderPass((VkDevice)_instance.getLogicalDevice(), (VkRenderPass)_renderPass, nullptr);
-            TRACE_LOG("...done");
-            _renderPass = nullptr;
-        }
-
         if (_pipeline)
         {
             TRACE_LOG("Destroying pipeline...");
-            vkDestroyPipeline((VkDevice)_instance.getLogicalDevice(), (VkPipeline)_pipeline, nullptr);
+            vkDestroyPipeline((VkDevice)_renderer.getInstance().getLogicalDevice(), (VkPipeline)_pipeline, nullptr);
             TRACE_LOG("...done");
             _pipeline = nullptr;
         }
     }
-
-    const void* GraphicsPipeline::getFramebuffers() const 
-    { return _swapChainFramebuffers; }
-
-    const void* GraphicsPipeline::getRenderPass() const
-    { return _renderPass; }
 
     void GraphicsPipeline::setMode(const MODE& mode)
     { _mode = mode; }

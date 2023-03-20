@@ -3,9 +3,12 @@
 #include "livre/header.h"
 
 #include "Pipeline.h"
+#include "BufferArray.h"
 
 namespace livre
 {
+    class Renderer;
+
     /**
      * @brief Interface to rendering with Vulkan.
      * 
@@ -23,23 +26,17 @@ namespace livre
 
     private:
         MODE _mode;
-        void* _renderPass;
-        void* _swapChainFramebuffers;
+
+        const BufferArray* _bufferArray;
 
     protected:
         void _initShaders() override;
 
-        STATUS _createPipeline();
         STATUS _createLayouts();
-        STATUS _createRenderPass();
-        STATUS _createFramebuffers();
 
     public:
-        GraphicsPipeline(const Graphics::RenderInstance& instance);
+        GraphicsPipeline(const Renderer& renderer, const BufferArray* bufferArray);
         ~GraphicsPipeline();
-
-        const void* getFramebuffers() const;
-        const void* getRenderPass() const;
 
         void setMode(const MODE& mode);
         MODE getMode() const;

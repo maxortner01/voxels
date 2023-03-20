@@ -8,13 +8,15 @@ int main()
 {
     Window window(1280, 720);
 
-    GraphicsPipeline pipeline(window.getInstance());
-    pipeline.getVertexShader().fromFileAsGLSL("vertex.glsl");
-    pipeline.getFragmentShader().fromFileAsGLSL("fragment.glsl");
-    pipeline.create();
+    BufferArray vao(BufferObject::Type::Vertex3D | BufferObject::Type::Color);
 
     Renderer::CreateInfo info;
     Renderer renderer(info, window.getInstance());
+
+    GraphicsPipeline pipeline(renderer, &vao);
+    pipeline.getVertexShader().fromFileAsGLSL("vertex.glsl");
+    pipeline.getFragmentShader().fromFileAsGLSL("fragment.glsl");
+    pipeline.create();
 
     ModelObject object;
 
@@ -52,12 +54,10 @@ int main()
     while (window.open())
     {
         window.pollEvents();
-        //object.draw(pipeline);
-        //renderer.draw();
+        
+        FrameContext frame(renderer);
 
-        renderer.startFrame();
         renderer.draw(object, pipeline);
-        renderer.endFrame();
     }
 
     window.waitForIdle();

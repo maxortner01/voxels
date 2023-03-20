@@ -2,8 +2,8 @@
 
 namespace livre
 {
-    Pipeline::Pipeline(const Graphics::RenderInstance& instance) :
-        InstanceObject(instance), shaders(nullptr), _pipeline(nullptr), _pipelineLayout(nullptr)
+    Pipeline::Pipeline(const Renderer& renderer) :
+        _renderer(renderer), shaders(nullptr), _pipeline(nullptr), _pipelineLayout(nullptr)
     { }
 
     Pipeline::~Pipeline() 
@@ -24,7 +24,7 @@ namespace livre
         if (_pipelineLayout)
         {
             TRACE_LOG("Destroying pipeline layout...");
-            vkDestroyPipelineLayout((VkDevice)_instance.getLogicalDevice(), (VkPipelineLayout)_pipelineLayout, nullptr);
+            vkDestroyPipelineLayout((VkDevice)_renderer.getInstance().getLogicalDevice(), (VkPipelineLayout)_pipelineLayout, nullptr);
             TRACE_LOG("...done");
             _pipelineLayout = nullptr;
         }

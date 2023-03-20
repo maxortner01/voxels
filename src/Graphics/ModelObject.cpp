@@ -4,41 +4,13 @@ namespace livre
 {
     void ModelObject::draw(const Renderer& _renderer, const GraphicsPipeline& _pipeline) const 
     {
-        VkExtent2D _extent = *((VkExtent2D*)_renderer.getInstance().getSwapChainImages().extent);
-        VkFramebuffer framebuffer = *(((VkFramebuffer*)_pipeline.getFramebuffers()) + _renderer.getImageIndex());
-
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = (VkRenderPass)_pipeline.getRenderPass();
-        renderPassInfo.framebuffer = framebuffer;
-        renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = _extent;
-        
-        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &clearColor;
-
-        vkCmdBeginRenderPass((VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        vkCmdBindPipeline((VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (const VkPipeline)_pipeline.getPipeline());
-
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = static_cast<float>(_extent.width);
-        viewport.height = static_cast<float>(_extent.height);
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport((VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer, 0, 1, &viewport);
-
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = _extent;
-        vkCmdSetScissor((VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer, 0, 1, &scissor);
+        vkCmdBindPipeline(
+            (VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS, 
+            (const VkPipeline)_pipeline.getPipeline()
+        );
 
         vkCmdDraw((VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer, 3, 1, 0, 0);
-
-        vkCmdEndRenderPass((VkCommandBuffer)_renderer.getCurrentFrame().commandBuffer);
     }
 
 /*

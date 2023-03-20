@@ -29,3 +29,6 @@
 #include "./Graphics/GraphicsPipeline.cpp"
 #include "./Graphics/ModelObject.cpp"
 #include "./Graphics/Renderer.cpp"
+#include "./Graphics/FrameContext.cpp"
+#include "./Graphics/BufferObject.cpp"
+#include "./Graphics/BufferArray.cpp"

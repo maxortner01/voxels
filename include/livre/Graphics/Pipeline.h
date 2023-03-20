@@ -6,7 +6,9 @@
 
 namespace livre
 {
-    class DLLOUT Pipeline : public Graphics::InstanceObject
+    class Renderer;
+
+    class DLLOUT Pipeline 
     {
     public:
         enum STATUS
@@ -30,8 +32,10 @@ namespace livre
 
         virtual void _initShaders() = 0;
 
+        const Renderer& _renderer;
+
     public:
-        Pipeline(const Graphics::RenderInstance& instance);
+        Pipeline(const Renderer& renderer);
         virtual ~Pipeline();
 
         const void* getPipeline() const;
